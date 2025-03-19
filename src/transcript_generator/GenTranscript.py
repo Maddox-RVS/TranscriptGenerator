@@ -2,8 +2,11 @@ import tempfile
 import whisper
 import ffmpeg
 import shutil
+import torch
 import sys
 import os
+
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 MODEL_SIZES: list[str] = ['tiny.en', 
                         'tiny', 
@@ -88,7 +91,7 @@ def __transcribeMp3__(inputDir: str, modelSize: str) -> str:
     Returns:
         str: The transcribed text.
     '''
-    model = whisper.load_model(modelSize)
+    model = whisper.load_model(modelSize, device=DEVICE)
     result: dict[str, str | list] = model.transcribe(inputDir)
     return result['text']
 
@@ -124,7 +127,8 @@ def transcribe(inputDir: str, outputDir: str, modelSize: str):
     elif isMp3(inputDir): 
         __copyToTmp__(inputDir)
 
-    print('Transcribing audio...')
+    print(f'Found {DEVICE} device')
+    print(f'Transcribing audio using {DEVICE}...')
     transcript: str = __transcribeMp3__(os.path.join(TMP_DIRECTORY, inputFilename[:-1] + '3'), modelSize)
     print('Done!')
 
